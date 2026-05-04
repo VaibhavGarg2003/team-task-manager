@@ -117,7 +117,7 @@ A full-stack web application for team project management with role-based access 
 ## ⚡ Local Setup
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 20+
 - MongoDB Atlas account (or local MongoDB)
 
 ### Steps
