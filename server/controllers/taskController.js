@@ -15,7 +15,7 @@ exports.getTasks = async (req, res) => {
 
     if (status) query.status = status;
     if (priority) query.priority = priority;
-    if (project && req.user.role === 'admin') query.project = project;
+    if (project) query.project = project;
     if (assignedTo) query.assignedTo = assignedTo;
     if (search) query.title = { $regex: search, $options: 'i' };
 
