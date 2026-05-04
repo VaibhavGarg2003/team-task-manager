@@ -10,6 +10,6 @@
     "seed": "cd server && node seed.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   }
 }
