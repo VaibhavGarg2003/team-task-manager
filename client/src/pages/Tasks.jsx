@@ -126,8 +126,13 @@ const Tasks = () => {
       </div>
 
       {/* task list */}
-      <div className="space-y-2">
-        {filtered.map(task => (
+      {(() => {
+        const isAdmin = user?.role === 'admin';
+        const myFiltered = filtered.filter(t => t.assignedTo?._id === user?.id);
+        const teamFiltered = filtered.filter(t => t.assignedTo?._id !== user?.id);
+        const canEditStatus = (task) => isAdmin || task.assignedTo?._id === user?.id;
+
+        const renderTask = (task) => (
           <div
             key={task._id}
             className="bg-surface-900 border border-surface-800 rounded-xl p-4 flex items-center gap-4 hover:border-surface-700"
@@ -153,26 +158,69 @@ const Tasks = () => {
               </div>
             </div>
 
-            <select
-              value={task.status}
-              onChange={(e) => handleStatusChange(task._id, e.target.value)}
-              className="bg-surface-800 border border-surface-700 rounded-lg px-3 py-1.5 text-xs text-surface-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            >
-              <option value="todo">To Do</option>
-              <option value="in-progress">In Progress</option>
-              <option value="done">Done</option>
-            </select>
+            {canEditStatus(task) && (
+              <select
+                value={task.status}
+                onChange={(e) => handleStatusChange(task._id, e.target.value)}
+                className="bg-surface-800 border border-surface-700 rounded-lg px-3 py-1.5 text-xs text-surface-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="todo">To Do</option>
+                <option value="in-progress">In Progress</option>
+                <option value="done">Done</option>
+              </select>
+            )}
           </div>
-        ))}
+        );
 
-        {filtered.length === 0 && (
+        const emptyState = (
           <div className="text-center py-16 text-surface-500">
             <ListTodo size={48} className="mx-auto mb-4 opacity-30" />
             <p className="text-lg">No tasks found</p>
             <p className="text-sm mt-1">Try adjusting your filters</p>
           </div>
-        )}
-      </div>
+        );
+
+        if (isAdmin) {
+          return (
+            <div className="space-y-2">
+              {filtered.map(renderTask)}
+              {filtered.length === 0 && emptyState}
+            </div>
+          );
+        }
+
+        return (
+          <>
+            {/* my tasks */}
+            <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+              My Tasks
+              <span className="text-sm font-normal text-surface-400">({myFiltered.length})</span>
+            </h2>
+            <div className="space-y-2 mb-8">
+              {myFiltered.map(renderTask)}
+              {myFiltered.length === 0 && (
+                <div className="text-center py-8 text-surface-500 bg-surface-900 border border-surface-800 rounded-xl">
+                  No tasks assigned to you
+                </div>
+              )}
+            </div>
+
+            {/* team tasks */}
+            <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+              Team Tasks
+              <span className="text-sm font-normal text-surface-400">({teamFiltered.length})</span>
+            </h2>
+            <div className="space-y-2">
+              {teamFiltered.map(renderTask)}
+              {teamFiltered.length === 0 && (
+                <div className="text-center py-8 text-surface-500 bg-surface-900 border border-surface-800 rounded-xl">
+                  No team tasks found
+                </div>
+              )}
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 };

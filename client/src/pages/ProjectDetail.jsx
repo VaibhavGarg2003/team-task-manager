@@ -181,11 +181,13 @@ const ProjectDetail = () => {
 
       {/* tasks list */}
       <div>
-        <h2 className="text-lg font-semibold text-white mb-3">
-          Tasks ({tasks.length})
-        </h2>
-        <div className="space-y-2">
-          {tasks.map(task => (
+        {(() => {
+          const isAdmin = user?.role === 'admin';
+          const myTasks = tasks.filter(t => t.assignedTo?._id === user?.id);
+          const teamTasks = tasks.filter(t => t.assignedTo?._id !== user?.id);
+          const canEditStatus = (task) => isAdmin || task.assignedTo?._id === user?.id;
+
+          const renderTask = (task) => (
             <div
               key={task._id}
               className="bg-surface-900 border border-surface-800 rounded-xl p-4 flex items-center gap-4 hover:border-surface-700"
@@ -207,17 +209,27 @@ const ProjectDetail = () => {
                 </div>
               </div>
 
-              <select
-                value={task.status}
-                onChange={(e) => handleStatusChange(task._id, e.target.value)}
-                className="bg-surface-800 border border-surface-700 rounded-lg px-3 py-1.5 text-xs text-surface-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-                <option value="todo">To Do</option>
-                <option value="in-progress">In Progress</option>
-                <option value="done">Done</option>
-              </select>
+              {canEditStatus(task) ? (
+                <select
+                  value={task.status}
+                  onChange={(e) => handleStatusChange(task._id, e.target.value)}
+                  className="bg-surface-800 border border-surface-700 rounded-lg px-3 py-1.5 text-xs text-surface-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="todo">To Do</option>
+                  <option value="in-progress">In Progress</option>
+                  <option value="done">Done</option>
+                </select>
+              ) : (
+                <span className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
+                  task.status === 'done' ? 'bg-emerald-500/15 text-emerald-400' :
+                  task.status === 'in-progress' ? 'bg-primary-500/15 text-primary-400' :
+                  'bg-surface-700/50 text-surface-400'
+                }`}>
+                  {task.status === 'todo' ? 'To Do' : task.status === 'in-progress' ? 'In Progress' : 'Done'}
+                </span>
+              )}
 
-              {user?.role === 'admin' && (
+              {isAdmin && (
                 <button
                   onClick={() => handleDeleteTask(task._id)}
                   className="p-1.5 text-surface-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg"
@@ -226,14 +238,58 @@ const ProjectDetail = () => {
                 </button>
               )}
             </div>
-          ))}
+          );
 
-          {tasks.length === 0 && (
-            <div className="text-center py-12 text-surface-500">
-              No tasks in this project yet
-            </div>
-          )}
-        </div>
+          if (isAdmin) {
+            return (
+              <>
+                <h2 className="text-lg font-semibold text-white mb-3">
+                  Tasks ({tasks.length})
+                </h2>
+                <div className="space-y-2">
+                  {tasks.map(renderTask)}
+                  {tasks.length === 0 && (
+                    <div className="text-center py-12 text-surface-500">
+                      No tasks in this project yet
+                    </div>
+                  )}
+                </div>
+              </>
+            );
+          }
+
+          return (
+            <>
+              {/* my tasks */}
+              <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                My Tasks
+                <span className="text-sm font-normal text-surface-400">({myTasks.length})</span>
+              </h2>
+              <div className="space-y-2 mb-8">
+                {myTasks.map(renderTask)}
+                {myTasks.length === 0 && (
+                  <div className="text-center py-8 text-surface-500 bg-surface-900 border border-surface-800 rounded-xl">
+                    No tasks assigned to you in this project
+                  </div>
+                )}
+              </div>
+
+              {/* team tasks */}
+              <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                Team Tasks
+                <span className="text-sm font-normal text-surface-400">({teamTasks.length})</span>
+              </h2>
+              <div className="space-y-2">
+                {teamTasks.map(renderTask)}
+                {teamTasks.length === 0 && (
+                  <div className="text-center py-8 text-surface-500 bg-surface-900 border border-surface-800 rounded-xl">
+                    No other tasks in this project
+                  </div>
+                )}
+              </div>
+            </>
+          );
+        })()}
       </div>
 
       {/* create task modal */}
