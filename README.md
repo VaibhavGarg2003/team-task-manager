@@ -155,7 +155,7 @@ Frontend: `http://localhost:3000` → Backend: `http://localhost:5000`
 2. Create a new project on [Railway](https://railway.app)
 3. Connect your GitHub repo
 4. Set environment variables:
-   - `MONGO_URI` — your MongoDB Atlas connection string
+   - `MONGO_URL` — your MongoDB Atlas connection string
    - `JWT_SECRET` — any secure random string
    - `NODE_ENV` — `production`
    - `PORT` — `5000`
